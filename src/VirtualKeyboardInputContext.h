@@ -95,6 +95,8 @@ public:
      */
     virtual void setFocusObject(QObject *object);
 
+    virtual bool eventFilter(QObject *object, QEvent *event);
+
     /**
      * Use this static instance function to access the singleton input context
      * instance

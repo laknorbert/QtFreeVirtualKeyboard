@@ -150,12 +150,14 @@ void VirtualKeyboardInputContext::setFocusObject(QObject *object)
     {
         return;
     }
+    d->FocusItem->installEventFilter(this);
 
     // Check if an input control has focus that accepts text input - if not,
     // then we can leave immediatelly
     bool AcceptsInput = d->FocusItem->inputMethodQuery(Qt::ImEnabled).toBool();
     if (!AcceptsInput)
     {
+        hideInputPanel();
         return;
     }
 
@@ -179,7 +181,7 @@ void VirtualKeyboardInputContext::setFocusObject(QObject *object)
     // Search for the top most flickable so that we can scroll the control
     // into the visible area, if the keyboard hides the control
     QQuickItem* i = d->FocusItem;
-    d->Flickable = 0;
+    d->Flickable = nullptr;
     while (i)
     {
         QQuickFlickable* Flickable = dynamic_cast<QQuickFlickable*>(i);
@@ -237,6 +239,21 @@ QObject* VirtualKeyboardInputContext::inputEngineProvider(QQmlEngine *engine, QJ
     Q_UNUSED(engine)
     Q_UNUSED(scriptEngine)
     return VirtualKeyboardInputContext::instance()->d->InputEngine;
+}
+
+bool VirtualKeyboardInputContext::eventFilter(QObject *object, QEvent *event)
+{
+    if (object != d->FocusItem) {
+        object->removeEventFilter(this);
+    }
+
+    if (event->type() == QEvent::FocusOut) {
+        hideInputPanel();
+        object->removeEventFilter(this);
+    }
+
+    // standard event processing
+    return QObject::eventFilter(object, event);
 }
 
 //------------------------------------------------------------------------------
